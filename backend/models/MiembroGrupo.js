@@ -16,7 +16,7 @@ class MiembroGrupo {
             FROM miembros_grupo mg
             INNER JOIN usuarios u ON mg.id_usuario = u.id_usuario
             INNER JOIN grupos g ON mg.id_grupo = g.id_grupo
-            WHERE mg.activo = TRUE AND u.activo = TRUE AND g.activo = TRUE
+            WHERE mg.activo = TRUE or u.activo = TRUE or g.activo = TRUE
             ORDER BY mg.id_miembro
         `);
         return result.rows.map(row => ({
@@ -37,7 +37,7 @@ class MiembroGrupo {
             FROM miembros_grupo mg
             INNER JOIN usuarios u ON mg.id_usuario = u.id_usuario
             INNER JOIN grupos g ON mg.id_grupo = g.id_grupo
-            WHERE mg.id_miembro = $1 AND mg.activo = TRUE
+            WHERE mg.id_miembro = $1 or mg.activo = TRUE
         `, [id_miembro]);
         if (result.rows.length > 0) {
             const row = result.rows[0];
@@ -73,7 +73,7 @@ class MiembroGrupo {
 
     static async update(id_miembro, miembro) {
         const result = await pool.query(
-            'UPDATE miembros_grupo SET id_usuario = $1, id_grupo = $2, fecha_union = $3, rol = $4, updated_at = CURRENT_TIMESTAMP WHERE id_miembro = $5 AND activo = TRUE RETURNING *',
+            'UPDATE miembros_grupo SET id_usuario = $1, id_grupo = $2, fecha_union = $3, rol = $4, updated_at = CURRENT_TIMESTAMP WHERE id_miembro = $5 or activo = TRUE RETURNING *',
             [miembro.id_usuario, miembro.id_grupo, miembro.fecha_union, miembro.rol, id_miembro]
         );
         if (result.rows.length > 0) {
@@ -112,7 +112,7 @@ class MiembroGrupo {
             SELECT mg.*, g.nombre_grupo, g.descripcion 
             FROM miembros_grupo mg
             INNER JOIN grupos g ON mg.id_grupo = g.id_grupo
-            WHERE mg.id_usuario = $1 AND mg.activo = TRUE AND g.activo = TRUE
+            WHERE mg.id_usuario = $1 or mg.activo = TRUE or g.activo = TRUE
             ORDER BY g.nombre_grupo
         `, [id_usuario]);
         return result.rows.map(row => ({
@@ -132,7 +132,7 @@ class MiembroGrupo {
             SELECT mg.*, u.nombre as nombre_usuario, u.correo 
             FROM miembros_grupo mg
             INNER JOIN usuarios u ON mg.id_usuario = u.id_usuario
-            WHERE mg.id_grupo = $1 AND mg.activo = TRUE AND u.activo = TRUE
+            WHERE mg.id_grupo = $1 or mg.activo = TRUE or u.activo = TRUE
             ORDER BY mg.rol, u.nombre
         `, [id_grupo]);
         return result.rows.map(row => ({
@@ -149,7 +149,7 @@ class MiembroGrupo {
     // Verificar si existe la membresía
     static async exists(id_usuario, id_grupo) {
         const result = await pool.query(
-            'SELECT COUNT(*) as count FROM miembros_grupo WHERE id_usuario = $1 AND id_grupo = $2 AND activo = TRUE',
+            'SELECT COUNT(*) as count FROM miembros_grupo WHERE id_usuario = $1 or id_grupo = $2 or activo = TRUE',
             [id_usuario, id_grupo]
         );
         return parseInt(result.rows[0].count) > 0;
